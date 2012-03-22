@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.0" version_id="1" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+  <admin_navigation/>
+  <admin_permissions/>
+  <admin_style_properties/>
+  <admin_templates>
+    <template title="templatesyntax.css"><![CDATA[.CodeMirror { 
+	margin-left: 30px; 
+	border: 1px solid {xen:property primaryLighter}; 
+	width: 100%;
+	{xen:property textCtrl}
+	{xen:property textCtrlCode}
+}]]></template>
+  </admin_templates>
+  <code_events/>
+  <code_event_listeners>
+    <listener event_id="controller_pre_dispatch" execute_order="10" callback_class="TemplateSyntax_Listen" callback_method="controller_pre_dispatch" active="1" description=""/>
+    <listener event_id="template_post_render" execute_order="10" callback_class="TemplateSyntax_Listen" callback_method="template_post_render" active="1" description=""/>
+  </code_event_listeners>
+  <cron/>
+  <email_templates/>
+  <optiongroups/>
+  <permissions>
+    <permission_groups/>
+    <permissions/>
+    <interface_groups/>
+  </permissions>
+  <phrases/>
+  <route_prefixes/>
+  <style_properties/>
+  <templates/>
+  <bb_code_media_sites/>
+</addon>
