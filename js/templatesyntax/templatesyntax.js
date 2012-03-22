@@ -17,6 +17,16 @@ TemplateSyntax = new function()
 	var clickEvents = {};
 	
 	/**
+	 * @type {bool}	Wether or not we are resizing
+	 */
+	var resize = false;
+	
+	/**
+	 * @type {null|object}	Variable that stores the stylesheet that's temporarily used to make text unselectable
+	 */
+	var unselectStyle = null;
+	
+	/**
 	 * Class constructor
 	 * 
 	 * @returns	{void}						
@@ -75,6 +85,28 @@ TemplateSyntax = new function()
 		},
 		
 		/**
+		 * Bind events specific to the CodeMirror instance
+		 * 
+		 * @returns	{void}						
+		 */
+		bindCodeMirrorEvents: function()
+		{
+			$("#cmresize").remove();
+			$(".CodeMirror").after($("<div id=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'}));
+			var elem = $("#cmresize");
+			
+			elem.unbind('hover');
+			elem.hover(
+				function() { $(this).css('cursor', 's-resize'); },
+				function() { $(this).css('cursor', 'auto'); }
+			);
+			
+			elem.unbind('mousedown').unbind('mouseup');
+			elem.mousedown( $this.events.onMouseDown );
+			elem.mouseup( $this.events.onMouseUp );
+		},
+		
+		/**
 		 * ajaxSuccess jQuery event, captured so we can load CodeMirror once the templates have been loaded
 		 * 
 		 * @param	{Object}		event			
@@ -114,6 +146,54 @@ TemplateSyntax = new function()
 			
 			e.preventDefault();
 			return false;
+		},
+		
+		/**
+		 * Catch onMouseDown event for resizer element, this initiates the resize
+		 * 
+		 * @returns	{void}						
+		 */
+		onMouseDown: function()
+		{
+			$(document).unbind('mousemove');
+			$(document).mousemove( $this.events.onMouseMove );
+			$(document).mouseup( $this.events.onMouseUp );
+			
+			unselectStyle = $("<style type=text/css>");
+			unselectStyle.html("* { -moz-user-select: none; -webkit-user-select: none; user-select: none; -ms-user-select: none; }");
+			unselectStyle.appendTo("body");
+			resize = true;
+		},
+		
+		/**
+		 * Mouseup event, stop resizing
+		 * 
+		 * @returns	{void}						
+		 */
+		onMouseUp: function()
+		{
+			$(document).unbind('mousemove');
+			$(unselectStyle).remove();
+			resize = false;
+		},
+		
+		/**
+		 * Mousemove event, resize CodeMirror (if resize flag is set)
+		 * 
+		 * @param	{Object}		event
+		 * 
+		 * @returns	{void}						
+		 */
+		onMouseMove: function(event)
+		{
+			if (resize == false) return;
+			
+			var pos = $(".CodeMirror").offset().top;
+			var h = event.pageY - pos;
+			
+			if (h < 300) h = 300;
+			
+			$this.setCodeMirrorHeight(h);
 		}
 	}
 	
@@ -131,7 +211,7 @@ TemplateSyntax = new function()
 		
 		var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
 		
-		CodeMirror(function(elt)
+		var CM = CodeMirror(function(elt)
 		{
 			var textarea = $('.textCtrl.code:visible');
 			var elt = $(elt);
@@ -158,6 +238,9 @@ TemplateSyntax = new function()
 				"'/'": function(cm) { cm.closeTag(cm, '/'); }
 			}
 		});
+		
+		$this.setCodeMirrorHeight();
+		$this.events.bindCodeMirrorEvents(CM);
 	};
 	
 	/**
@@ -170,6 +253,29 @@ TemplateSyntax = new function()
 		var elt = $(".CodeMirror");
 		elt.data('textarea').show();
 		elt.remove();
+	};
+	
+	/**
+	 * Set height of the CodeMirror editor
+	 *
+	 * Sets and falls back on cookies
+	 * 
+	 * @param	{int|undefined}		h
+	 * 
+	 * @returns	{void}						
+	 */
+	this.setCodeMirrorHeight = function(h)
+	{
+		if (h == undefined)
+		{
+			h = $.getCookie('cmheight');
+		}
+		
+		if (h == null) h = 350;
+		
+		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child, .CodeMirror-gutter").height(h);
+		
+		$.setCookie('cmheight', h, new Date((new Date()).getTime() + 604800000));
 	};
 	
 	$(document).ready($this.init);
