@@ -82,11 +82,11 @@ class TemplateSyntax_Listen
 	public static function controller_pre_dispatch(XenForo_Controller $controller, $action)
 	{
 		if (
-			(
-				! $controller instanceof XenForo_ControllerAdmin_AdminTemplate AND
-				! $controller instanceof XenForo_ControllerAdmin_Template
-			) OR
-			($action != 'Edit' AND $action != 'Add'))
+			! $controller instanceof XenForo_ControllerAdmin_AdminTemplate AND
+			! $controller instanceof XenForo_ControllerAdmin_Template AND
+			! $controller instanceof XenForo_ControllerAdmin_Style AND
+			! $controller instanceof XenForo_ControllerAdmin_AdminStyleProperty
+		)
 		{
 			return;
 		}

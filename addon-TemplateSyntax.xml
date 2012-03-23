@@ -12,6 +12,11 @@
 	{xen:property textCtrlCode}
 }
 
+.styleProperty .CodeMirror {
+	margin-left: 0;
+	width: 100%;
+}
+
 .CodeMirror-gutter {
 	cursor: pointer;
 }]]></template>

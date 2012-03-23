@@ -27,12 +27,42 @@ TemplateSyntax = new function()
 	var unselectStyle = null;
 	
 	/**
+	 * @type {String}	Tab container css representation
+	 */
+	var tabContainer = '#editorTabs';
+	
+	/**
+	 * @type {int}	minimum editor height
+	 */
+	var minHeight = 300;
+	
+	/**
+	 * @type {int}	maximum editor height
+	 */
+	var maxHeight = 9999;
+	
+	/**
+	 * @type {string}	Cookie used to store height
+	 */
+	var heightCookie = 'cmheight';
+	
+	/**
 	 * Class constructor
 	 * 
 	 * @returns	{void}						
 	 */
 	this.init = function()
 	{
+		if ($(".propertyCss,.styleProperty").length > 1)
+		{
+			tabContainer 	= '#propertyTabs';
+			minHeight 		= 60;
+			maxHeight 		= 200;
+			heightCookie 	= 'cmsheight';
+			$this.events.bindTabEvents();
+			$this.showCodeMirror();
+		}
+		
 		$this.events.bind();
 	};
 	
@@ -63,12 +93,12 @@ TemplateSyntax = new function()
 			var x = 0;
 			if (clickEvents[x] != undefined) return;
 			
-			if ($("#editorTabs a").first().data('events').click.length == 0)
+			if ($(tabContainer + " a").first().data('events').click.length == 0)
 			{
 				setTimeout($this.events.bindTabEvents,50);
 			}
 			
-			$("#editorTabs a").each(function()
+			$(tabContainer + " a").each(function()
 			{
 				$(this).data('tabId', x);
 				
@@ -191,7 +221,7 @@ TemplateSyntax = new function()
 			var pos = $(".CodeMirror").offset().top;
 			var h = event.pageY - pos;
 			
-			if (h < 300) h = 300;
+			if (h < minHeight) h = minHeight;
 			
 			$this.setCodeMirrorHeight(h);
 		}
@@ -206,10 +236,17 @@ TemplateSyntax = new function()
 	{
 		if ($('.textCtrl.code:visible').val() == null)
 		{
-			setTimeout($this.showCodeMirror,100);
+			return setTimeout($this.showCodeMirror,100);
 		}
 		
-		var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
+		if ($(".propertyCss,.styleProperty").length > 1)
+		{
+			var mode = 'css';
+		}
+		else
+		{
+			var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
+		}
 		
 		var config = {
 			value: $('.textCtrl.code:visible').val(),
@@ -266,8 +303,12 @@ TemplateSyntax = new function()
 	this.hideCodeMirror = function()
 	{
 		var elt = $(".CodeMirror");
-		elt.data('textarea').show();
-		elt.remove();
+		
+		if (elt.length > 0)
+		{
+			elt.data('textarea').show();
+			elt.remove();
+		}
 	};
 	
 	/**
@@ -283,14 +324,15 @@ TemplateSyntax = new function()
 	{
 		if (h == undefined)
 		{
-			h = $.getCookie('cmheight');
+			h = $.getCookie(heightCookie);
 		}
 		
-		if (h == null) h = 350;
+		if (h == null || h < minHeight) h = minHeight;
+		if (h > maxHeight) h = maxHeight;
 		
 		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
 		
-		$.setCookie('cmheight', h, new Date((new Date()).getTime() + 604800000));
+		$.setCookie(heightCookie, h, new Date((new Date()).getTime() + 604800000));
 	};
 	
 	$(document).ready($this.init);
