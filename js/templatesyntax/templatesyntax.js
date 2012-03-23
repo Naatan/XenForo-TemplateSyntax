@@ -258,8 +258,8 @@ TemplateSyntax = new function()
 			smartIndent: tsConfig.features.smartIndent == "1" ? true : false,
 			electricChars: tsConfig.features.electricChars == "1" ? true : false,
 			matchBrackets: tsConfig.features.matchBrackets == "1" ? true : false,
-			tabSize: tsConfig.tabSize,
-			indentUnit: tsConfig.tabSize,
+			tabSize: parseInt(tsConfig.tabSize),
+			indentUnit: parseInt(tsConfig.tabSize),
 			keyMap: tsConfig.keymap == null ? 'default' : tsConfig.keymap,
 			onChange: function(editor,data)
 			{
