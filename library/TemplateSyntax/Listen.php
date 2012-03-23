@@ -45,12 +45,12 @@ class TemplateSyntax_Listen
 				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/keymap/'.$options->tsKeyMap.'.js"></script>' . "\n";
 			}
 			
-			if ($options->tsFeatures['matchBrackets'])
+			if (isset($options->tsFeatures['matchBrackets']))
 			{
 				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/closetag.js"></script>' . "\n";
 			}
 			
-			if ($options->tsFeatures['foldCode'])
+			if (isset($options->tsFeatures['foldCode']))
 			{
 				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/foldcode.js"></script>' . "\n";
 			}
