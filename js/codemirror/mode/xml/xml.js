@@ -2,7 +2,8 @@ CodeMirror.defineMode("xml", function(config, parserConfig) {
   var indentUnit = config.indentUnit;
   var Kludges = parserConfig.htmlMode ? {
     autoSelfClosers: {"br": true, "img": true, "hr": true, "link": true, "input": true,
-                      "meta": true, "col": true, "frame": true, "base": true, "area": true},
+                      "meta": true, "col": true, "frame": true, "base": true, "area": true,
+					  "xen:require": true, "xen:map": true, "xen:elseif": true, "xen:else": true},
     doNotIndent: {"pre": true},
     allowUnquoted: true,
     allowMissing: false
