@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.0.1" version_id="2" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.2" version_id="3" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -10,6 +10,10 @@
 	width: 660px;
 	{xen:property textCtrl}
 	{xen:property textCtrlCode}
+}
+
+.CodeMirror-gutter {
+	cursor: pointer;
 }]]></template>
   </admin_templates>
   <code_events/>
@@ -19,13 +23,67 @@
   </code_event_listeners>
   <cron/>
   <email_templates/>
-  <optiongroups/>
+  <optiongroups>
+    <group group_id="TemplateSyntax" display_order="5000" debug_only="0"/>
+    <option option_id="tsFeatures" edit_format="checkbox" data_type="array" can_backup="1">
+      <default_value>a:9:{s:11:"lineNumbers";s:1:"1";s:12:"lineWrapping";s:1:"1";s:14:"indentWithTabs";s:1:"1";s:11:"smartIndent";s:1:"1";s:13:"electricChars";s:1:"1";s:13:"matchBrackets";s:1:"1";s:9:"closeTags";s:1:"1";s:8:"foldCode";s:1:"1";s:19:"autoClearEmptyLines";s:1:"1";}</default_value>
+      <edit_format_params>lineNumbers = Show Line Numbers
+lineWrapping = Wrap Lines
+indentWithTabs = Indent with Tabs
+smartIndent=Context-Sensitive (smart) Indentation
+electricChars=Auto Re-Indent (electric chars)
+matchBrackets = Match Brackets
+closeTags = Auto Close Tags
+foldCode = Foldable Tags
+autoClearEmptyLines=Automatically Clear Empty Lines</edit_format_params>
+      <sub_options>*</sub_options>
+      <relation group_id="TemplateSyntax" display_order="1"/>
+    </option>
+    <option option_id="tsKeyMap" edit_format="radio" data_type="string" can_backup="1">
+      <default_value>default</default_value>
+      <edit_format_params>default = Default
+emacs = Emacs
+vim = Vim</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="TemplateSyntax" display_order="1"/>
+    </option>
+    <option option_id="tsTabSize" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>4</default_value>
+      <edit_format_params>min=2
+max=8</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="TemplateSyntax" display_order="1"/>
+    </option>
+    <option option_id="tsTheme" edit_format="select" data_type="string" can_backup="1">
+      <default_value>default</default_value>
+      <edit_format_params>default=Default
+cobalt=Cobalt
+eclipse=Eclipse
+monokai=Monokai
+neat=Neat
+night=Night
+rubyblue=Rubyblue</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="TemplateSyntax" display_order="1"/>
+    </option>
+  </optiongroups>
   <permissions>
     <permission_groups/>
     <permissions/>
     <interface_groups/>
   </permissions>
-  <phrases/>
+  <phrases>
+    <phrase title="option_group_TemplateSyntax" version_id="2" version_string="1.0.1"><![CDATA[Template Syntax]]></phrase>
+    <phrase title="option_group_TemplateSyntax_description" version_id="2" version_string="1.0.1"><![CDATA[]]></phrase>
+    <phrase title="option_tsFeatures" version_id="2" version_string="1.0.1"><![CDATA[Features]]></phrase>
+    <phrase title="option_tsFeatures_explain" version_id="2" version_string="1.0.1"><![CDATA[]]></phrase>
+    <phrase title="option_tsKeyMap" version_id="2" version_string="1.0.1"><![CDATA[Keymap]]></phrase>
+    <phrase title="option_tsKeyMap_explain" version_id="2" version_string="1.0.1"><![CDATA[]]></phrase>
+    <phrase title="option_tsTabSize" version_id="2" version_string="1.0.1"><![CDATA[Tab Size]]></phrase>
+    <phrase title="option_tsTabSize_explain" version_id="2" version_string="1.0.1"><![CDATA[Width of each tab character (in spaces)]]></phrase>
+    <phrase title="option_tsTheme" version_id="2" version_string="1.0.1"><![CDATA[Theme]]></phrase>
+    <phrase title="option_tsTheme_explain" version_id="2" version_string="1.0.1"><![CDATA[]]></phrase>
+  </phrases>
   <route_prefixes/>
   <style_properties/>
   <templates/>

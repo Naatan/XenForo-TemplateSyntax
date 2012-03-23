@@ -26,14 +26,43 @@ class TemplateSyntax_Listen
 			
 			$append 	 = '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/lib/codemirror.css">' . "\n";
 			$append 	.= '<link rel="stylesheet" href="'.$options->boardUrl.'/admin.php?_css/&css=templatesyntax">' . "\n";
+			
+			if ($options->tsTheme != 'default' AND ! empty($options->tsTheme))
+			{
+				$append .= '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/theme/'.$options->tsTheme.'.css">' . "\n";
+			}
+			
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/codemirror.js"></script>' . "\n";
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/closetag.js"></script>' . "\n";
 			$append 	.= '<script src="'.$options->boardUrl.'/js/templatesyntax/templatesyntax.js"></script>' . "\n";
 			
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/xml/xml.js"></script>' . "\n";
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/javascript/javascript.js"></script>' . "\n";
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/css/css.js"></script>' . "\n";
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>' . "\n";
+			
+			if ($options->tsKeyMap != 'default' AND ! empty($options->tsKeyMap))
+			{
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/keymap/'.$options->tsKeyMap.'.js"></script>' . "\n";
+			}
+			
+			if ($options->tsFeatures['matchBrackets'])
+			{
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/closetag.js"></script>' . "\n";
+			}
+			
+			if ($options->tsFeatures['foldCode'])
+			{
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/foldcode.js"></script>' . "\n";
+			}
+			
+			$config = array(
+				'features'	=> $options->tsFeatures,
+				'keymap'	=> $options->tsKeyMap,
+				'tabSize'	=> $options->tsTabSize,
+				'theme'		=> $options->tsTheme
+			);
+			
+			$append 	.= '<script>tsConfig = '.json_encode($config).';</script>' . "\n";
 			
 			$content 	= str_replace('</head>', $append . '</head>', $content);
 			

@@ -211,6 +211,38 @@ TemplateSyntax = new function()
 		
 		var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
 		
+		var config = {
+			value: $('.textCtrl.code:visible').val(),
+			theme: tsConfig.theme,
+			mode: mode,
+			lineNumbers: tsConfig.features.lineNumbers == "1" ? true : false,
+			lineWrapping: tsConfig.features.lineWrapping == "1" ? true : false,
+			indentWithTabs: tsConfig.features.indentWithTabs == "1" ? true : false,
+			smartIndent: tsConfig.features.smartIndent == "1" ? true : false,
+			electricChars: tsConfig.features.electricChars == "1" ? true : false,
+			matchBrackets: tsConfig.features.matchBrackets == "1" ? true : false,
+			tabSize: tsConfig.tabSize,
+			indentUnit: tsConfig.tabSize,
+			keyMap: tsConfig.keymap == null ? 'default' : tsConfig.keymap,
+			onChange: function(editor,data)
+			{
+				$(".CodeMirror").data("textarea").val(editor.getValue());
+			}
+		};
+		
+		if (tsConfig.features.closeTags == "1")
+		{
+			config.extraKeys = {
+				"'>'": function(cm) { cm.closeTag(cm, '>'); },
+				"'/'": function(cm) { cm.closeTag(cm, '/'); }
+			};
+		}
+		
+		if (tsConfig.features.foldCode)
+		{
+			config.onGutterClick = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
+		}
+		
 		var CM = CodeMirror(function(elt)
 		{
 			var textarea = $('.textCtrl.code:visible');
@@ -220,24 +252,7 @@ TemplateSyntax = new function()
 			
 			textarea.hide();
 			textarea.after(elt);
-		},
-		{
-			value: $('.textCtrl.code:visible').val(),
-			mode: mode,
-			lineNumbers: true,
-			lineWrapping: true,
-			indentWithTabs: true,
-			tabSize: 2,
-			indentUnit: 2,
-			onChange: function(editor,data)
-			{
-				$(".CodeMirror").data("textarea").val(editor.getValue());
-			},
-			extraKeys: {
-				"'>'": function(cm) { cm.closeTag(cm, '>'); },
-				"'/'": function(cm) { cm.closeTag(cm, '/'); }
-			}
-		});
+		}, config);
 		
 		$this.setCodeMirrorHeight();
 		$this.events.bindCodeMirrorEvents(CM);
@@ -273,7 +288,7 @@ TemplateSyntax = new function()
 		
 		if (h == null) h = 350;
 		
-		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child, .CodeMirror-gutter").height(h);
+		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
 		
 		$.setCookie('cmheight', h, new Date((new Date()).getTime() + 604800000));
 	};
