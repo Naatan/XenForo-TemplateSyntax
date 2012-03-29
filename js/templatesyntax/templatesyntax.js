@@ -63,7 +63,15 @@ TemplateSyntax = new function()
 			$this.showCodeMirror();
 		}
 		
-		$this.events.bind();
+		if (window.location.href.substr(-13) == 'templates/add')
+		{
+			$this.events.bindTabEvents();
+			$this.showCodeMirror();
+		}
+		else
+		{
+			$this.events.bind();
+		}
 	};
 	
 	/**
@@ -93,9 +101,9 @@ TemplateSyntax = new function()
 			var x = 0;
 			if (clickEvents[x] != undefined) return;
 			
-			if ($(tabContainer + " a").first().data('events').click.length == 0)
+			if ($(tabContainer + " a").first().data('events') == undefined || $(tabContainer + " a").first().data('events').click.length == 0)
 			{
-				setTimeout($this.events.bindTabEvents,50);
+				return setTimeout($this.events.bindTabEvents,50);
 			}
 			
 			$(tabContainer + " a").each(function()
@@ -122,18 +130,24 @@ TemplateSyntax = new function()
 		bindCodeMirrorEvents: function()
 		{
 			$("#cmresize").remove();
-			$(".CodeMirror").after($("<div id=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'}));
-			var elem = $("#cmresize");
 			
-			elem.unbind('hover');
-			elem.hover(
-				function() { $(this).css('cursor', 's-resize'); },
-				function() { $(this).css('cursor', 'auto'); }
-			);
+			if ( ! $(".CodeMirror").parent().hasClass('section'))
+			{
+				$(".CodeMirror").after($("<div id=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'}));
+				var elem = $("#cmresize");
+				
+				elem.unbind('hover');
+				elem.hover(
+					function() { $(this).css('cursor', 's-resize'); },
+					function() { $(this).css('cursor', 'auto'); }
+				);
+				
+				elem.unbind('mousedown').unbind('mouseup');
+				elem.mousedown( $this.events.onMouseDown );
+				elem.mouseup( $this.events.onMouseUp );
+			}
 			
-			elem.unbind('mousedown').unbind('mouseup');
-			elem.mousedown( $this.events.onMouseDown );
-			elem.mouseup( $this.events.onMouseUp );
+			$(".CodeMirror").mousedown( $this.events.onClickEditor );
 		},
 		
 		/**
@@ -176,6 +190,25 @@ TemplateSyntax = new function()
 			
 			e.preventDefault();
 			return false;
+		},
+		
+		/**
+		 * Maximize editor on click
+		 * 
+		 * @param	{Object}		e
+		 * 
+		 * @returns	{void}						
+		 */
+		onClickEditor: function(e)
+		{
+			if (
+				tsConfig.features.autoMaximize &&
+				! $(this).parent().hasClass('section') &&
+				$(".CodeMirror").data("clickMaximize") != false
+			)
+			{
+				$this.maximize();
+			}
 		},
 		
 		/**
@@ -230,7 +263,7 @@ TemplateSyntax = new function()
 	/**
 	 * Replace the textarea with a codemirror instance
 	 * 
-	 * @returns	{void}						
+	 * @returns	{object}		returns CodeMirror instance
 	 */
 	this.showCodeMirror = function()
 	{
@@ -261,6 +294,7 @@ TemplateSyntax = new function()
 			tabSize: parseInt(tsConfig.tabSize),
 			indentUnit: parseInt(tsConfig.tabSize),
 			keyMap: tsConfig.keymap == null ? 'default' : tsConfig.keymap,
+			extraKeys: {},
 			onChange: function(editor,data)
 			{
 				$(".CodeMirror").data("textarea").val(editor.getValue());
@@ -269,30 +303,40 @@ TemplateSyntax = new function()
 		
 		if (tsConfig.features.closeTags == "1")
 		{
-			config.extraKeys = {
-				"'>'": function(cm) { cm.closeTag(cm, '>'); },
-				"'/'": function(cm) { cm.closeTag(cm, '/'); }
-			};
+			config.extraKeys["'>'"] = function(cm) { cm.closeTag(cm, '>'); };
+			config.extraKeys["'/'"] = function(cm) { cm.closeTag(cm, '/'); };
 		}
+		
+		config.extraKeys[tsConfig.keybinding.save] = $this.save;
+		config.extraKeys[tsConfig.keybinding.maximize] = $this.toggleMaximize;
 		
 		if (tsConfig.features.foldCode)
 		{
 			config.onGutterClick = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
 		}
 		
+		var elem;
 		var CM = CodeMirror(function(elt)
 		{
 			var textarea = $('.textCtrl.code:visible');
-			var elt = $(elt);
+			elem = $(elt);
 			
-			elt.data('textarea', textarea);
+			elem.data('textarea', textarea);
 			
 			textarea.hide();
-			textarea.after(elt);
+			textarea.after(elem);
 		}, config);
+		
+		elem.data('CodeMirror', CM);
 		
 		$this.setCodeMirrorHeight();
 		$this.events.bindCodeMirrorEvents(CM);
+		
+		$(".CodeMirror").width($(".CodeMirror").parent().innerWidth());
+		
+		CM.refresh();
+		
+		return CM;
 	};
 	
 	/**
@@ -320,7 +364,7 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.setCodeMirrorHeight = function(h)
+	this.setCodeMirrorHeight = function(h, save)
 	{
 		if (h == undefined)
 		{
@@ -332,7 +376,113 @@ TemplateSyntax = new function()
 		
 		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
 		
-		$.setCookie(heightCookie, h, new Date((new Date()).getTime() + 604800000));
+		$(".CodeMirror").data("CodeMirror").refresh();
+		
+		if (save == undefined || save == true)
+		{
+			$.setCookie(heightCookie, h, new Date((new Date()).getTime() + 604800000));
+		}
+	};
+	
+	/**
+	 * Toggle maximize the editor
+	 * 
+	 * @returns	{void}						
+	 */
+	this.toggleMaximize = function()
+	{
+		if ($(".CodeMirror").parent().hasClass('section'))
+		{
+			$this.unMaximize();
+			$(".CodeMirror").data("clickMaximize", false);
+		}
+		else
+		{
+			$this.maximize();
+		}
+	};
+	
+	/**
+	 * Maximize CodeMirror instance
+	 * 
+	 * @returns	{void}						
+	 */
+	this.maximize = function()
+	{
+		
+		// Create the overlay
+		var html = "<div class=section></div>";
+		var overlay = XenForo.createOverlay(null, html, {
+			
+			// On close send editor back to main DOM
+			onBeforeClose: function() {
+				
+				var cursor = $(".CodeMirror").data("CodeMirror").getCursor();
+				
+				$this.hideCodeMirror();
+				
+				$("#codePlaceHolder").replaceWith($('.textCtrl.code:visible'));
+				
+				var CM = $this.showCodeMirror();
+				CM.focus();
+				CM.setCursor(cursor);
+				
+			},
+			
+			onClose: function() {
+				overlay.getOverlay().remove();
+			}
+			
+		});
+		
+		// Show overlay
+		overlay.load();
+		
+		// Resize overlay to be fullscreen
+		overlay.getOverlay().css({width: $(window).width() - 100, left: 50, top: 50});
+		
+		// Save CM cursor position
+		var cursor = $(".CodeMirror").data("CodeMirror").getCursor();
+		
+		$this.hideCodeMirror();
+		
+		// Move Editor to Overlay
+		$('.textCtrl.code:visible').after($("<div id=codePlaceHolder>").css({width: $('.textCtrl.code:visible').width(), height: $('.textCtrl.code:visible').height()}));
+		$('.textCtrl.code:visible').appendTo(overlay.getOverlay().find(".section"));
+		
+		// Restore CM and set cursor position
+		var CM = $this.showCodeMirror();
+		CM.focus();
+		CM.setCursor(cursor);
+		
+		$(".CodeMirror").data("overlay", overlay);
+		
+		// Resize CM to fit overlay size
+		$(".CodeMirror").css({width: 'auto', margin: 0, padding: 0});
+		$this.setCodeMirrorHeight($(window).height() - 150, false);
+	};
+	
+	/**
+	 * Unmaximize the editor
+	 * 
+	 * @returns	{void}						
+	 */
+	this.unMaximize = function()
+	{
+		if ($(".CodeMirror").data("overlay"))
+		{
+			$(".CodeMirror").data("overlay").close();
+		}
+	};
+	
+	/**
+	 * Save the current template
+	 * 
+	 * @returns	{void}						
+	 */
+	this.save = function()
+	{
+		$("#saveReloadButton").trigger("click");
 	};
 	
 	$(document).ready($this.init);

@@ -59,7 +59,11 @@ class TemplateSyntax_Listen
 				'features'	=> $options->tsFeatures,
 				'keymap'	=> $options->tsKeyMap,
 				'tabSize'	=> $options->tsTabSize,
-				'theme'		=> $options->tsTheme
+				'theme'		=> $options->tsTheme,
+				'keybinding'=> array(
+					'maximize' 	=> $options->tsMaximizeKeybinding,
+					'save' 		=> $options->tsSaveKeybinding
+				)
 			);
 			
 			$append 	.= '<script>tsConfig = '.json_encode($config).';</script>' . "\n";
