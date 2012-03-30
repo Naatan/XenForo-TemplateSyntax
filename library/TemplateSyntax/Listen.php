@@ -22,38 +22,46 @@ class TemplateSyntax_Listen
 	{
 		if (self::$addExternal AND $templateName == 'PAGE_CONTAINER')
 		{
+			$addonModel = new XenForo_Model_AddOn;
+			$version  	= $addonModel->getAddOnVersion('TemplateSyntax');
+			$version 	= $version['version_id'];
+			
 			$options 	= XenForo_Application::get('options');
 			
-			$append 	 = '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/lib/codemirror.css">' . "\n";
-			$append 	.= '<link rel="stylesheet" href="'.$options->boardUrl.'/admin.php?_css/&css=templatesyntax">' . "\n";
+			$append 	 = '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/lib/codemirror.css?v='.$version.'">' . "\n";
+			$append 	.= '<link rel="stylesheet" href="'.$options->boardUrl.'/admin.php?_css/&css=templatesyntax&v='.$version.'">' . "\n";
 			
 			if ($options->tsTheme != 'default' AND ! empty($options->tsTheme))
 			{
-				$append .= '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/theme/'.$options->tsTheme.'.css">' . "\n";
+				$append .= '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/theme/'.$options->tsTheme.'.css?v='.$version.'">' . "\n";
 			}
 			
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/codemirror.js"></script>' . "\n";
-			$append 	.= '<script src="'.$options->boardUrl.'/js/templatesyntax/templatesyntax.js"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/codemirror.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/templatesyntax/templatesyntax.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/templatesyntax/zen.min.js?v='.$version.'"></script>' . "\n";
 			
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/xml/xml.js"></script>' . "\n";
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/javascript/javascript.js"></script>' . "\n";
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/css/css.js"></script>' . "\n";
-			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/xml/xml.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/javascript/javascript.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/css/css.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/htmlmixed/htmlmixed.js?v='.$version.'"></script>' . "\n";
+			
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/formatting.js?v='.$version.'"></script>' . "\n";
 			
 			if ($options->tsKeyMap != 'default' AND ! empty($options->tsKeyMap))
 			{
-				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/keymap/'.$options->tsKeyMap.'.js"></script>' . "\n";
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/keymap/'.$options->tsKeyMap.'.js?v='.$version.'"></script>' . "\n";
 			}
 			
 			if (isset($options->tsFeatures['matchBrackets']))
 			{
-				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/closetag.js"></script>' . "\n";
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/closetag.js?v='.$version.'"></script>' . "\n";
 			}
 			
 			if (isset($options->tsFeatures['foldCode']))
 			{
-				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/foldcode.js"></script>' . "\n";
+				$append .= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/foldcode.js?v='.$version.'"></script>' . "\n";
 			}
+			
 			
 			$config = array(
 				'features'	=> $options->tsFeatures,
@@ -62,7 +70,9 @@ class TemplateSyntax_Listen
 				'theme'		=> $options->tsTheme,
 				'keybinding'=> array(
 					'maximize' 	=> $options->tsMaximizeKeybinding,
-					'save' 		=> $options->tsSaveKeybinding
+					'save' 		=> $options->tsSaveKeybinding,
+					'zen' 		=> $options->tsZenKeyBinding,
+					'format'	=> $options->tsFormatKeyBinding,
 				)
 			);
 			

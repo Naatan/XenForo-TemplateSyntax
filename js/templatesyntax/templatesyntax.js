@@ -68,7 +68,7 @@ TemplateSyntax = new function()
 			$this.showCodeMirror();
 		}
 		
-		if (window.location.href.substr(-13) == 'templates/add')
+		if (window.location.href.substr(-13) == 'templates/add' || window.location.href.indexOf('templates/add&') != -1)
 		{
 			$this.events.bindTabEvents();
 			$this.showCodeMirror();
@@ -277,14 +277,7 @@ TemplateSyntax = new function()
 			return setTimeout($this.showCodeMirror,100);
 		}
 		
-		if ($(".propertyCss,.styleProperty").length > 1)
-		{
-			var mode = 'css';
-		}
-		else
-		{
-			var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
-		}
+		var mode = $this.getSyntaxMode();
 		
 		var config = {
 			value: $('.textCtrl.code:visible').val(),
@@ -312,8 +305,10 @@ TemplateSyntax = new function()
 			config.extraKeys["'/'"] = function(cm) { cm.closeTag(cm, '/'); };
 		}
 		
-		config.extraKeys[tsConfig.keybinding.save] = $this.save;
-		config.extraKeys[tsConfig.keybinding.maximize] = $this.toggleMaximize;
+		config.extraKeys[tsConfig.keybinding.save] 		= $this.save;
+		config.extraKeys[tsConfig.keybinding.maximize] 	= $this.toggleMaximize;
+		config.extraKeys[tsConfig.keybinding.zen] 		= $this.zenCoding;
+		config.extraKeys[tsConfig.keybinding.format] 	= $this.formatSelection;
 		
 		if (tsConfig.features.foldCode)
 		{
@@ -536,6 +531,79 @@ TemplateSyntax = new function()
 		{
 			CM.setSelection(state.cursor, state.endCursor);
 		}
+	};
+	
+	/**
+	 * Apply Zen Coding to text under cursor
+	 * 
+	 * @param	{object}		CM				CM instance
+	 * 
+	 * @returns	{void}						
+	 */
+	this.zenCoding = function(CM)
+	{
+		var cursor = CM.getCursor();
+		var range = CM.getRange({line: cursor.line, ch: 0}, cursor);
+		
+		var zen = range.match(/\s*?(\S*$)/);
+		if (zen && zen[1] !== undefined && zen[1].length > 0)
+		{
+			zen_coding.setCaretPlaceholder('');
+			var syntax 	= $this.getSyntaxMode();
+			var html 	= zen_coding.expandAbbreviation(zen[1], syntax, 'xhtml');
+			
+			var rangeStart = {line: cursor.line, ch: cursor.ch - zen[1].length}
+			CM.replaceRange(html, rangeStart, cursor);
+		}
+	};
+	
+	/**
+	 * Format the selected text, if no selection is made use the whole document
+	 * 
+	 * @param	{Object}		CM				CM instance
+	 * 
+	 * @returns	{void}						
+	 */
+	this.formatSelection = function(CM)
+	{
+		var rangeStart = CM.getCursor(true);
+		var rangeEnd   = CM.getCursor(false);
+		
+		if (rangeStart.line == rangeEnd.line && rangeStart.ch == rangeEnd.ch)
+		{
+			rangeStart = {line: 0, ch: 0};
+			rangeEnd   = {line: CM.lineCount()-1, ch: CM.lineInfo(CM.lineCount()-1).text.length};
+		}
+		
+		var selection 	= CM.getRange(rangeStart, rangeEnd);
+		var html 		= selection.replace(/\n\n/g, "\n");
+		var bits 		= html.split("\n");
+		
+		CM.replaceRange(html, rangeStart, rangeEnd);
+		
+		rangeEnd.line = rangeStart.line + (html.match(/\n/g).length - 1);
+		rangeEnd.ch = bits[bits.length-1].length;
+		
+        CM.autoFormatRange(rangeStart, rangeEnd);
+	};
+	
+	/**
+	 * Get the syntax mode for the current editor
+	 * 
+	 * @returns	{string}						css or html
+	 */
+	this.getSyntaxMode = function()
+	{
+		if ($(".propertyCss,.styleProperty").length > 1)
+		{
+			var mode = 'css';
+		}
+		else
+		{
+			var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
+		}
+		
+		return mode;
 	};
 	
 	$(document).ready($this.init);
