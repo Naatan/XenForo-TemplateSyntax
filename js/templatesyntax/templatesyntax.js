@@ -494,7 +494,18 @@ TemplateSyntax = new function()
 	 */
 	this.save = function()
 	{
+		if ($(".CodeMirror").data("overlay"))
+		{
+			$("#saveReloadButton").before($("<input>").attr({
+				id: 'savePlaceHolder',
+				type: 'hidden',
+				name: $(".CodeMirror").data("textarea").attr("name"),
+				value: $(".CodeMirror").data("textarea").val()
+			}));
+		}
+		
 		$("#saveReloadButton").trigger("click");
+		$("#savePlaceHolder").remove();
 	};
 	
 	/**
