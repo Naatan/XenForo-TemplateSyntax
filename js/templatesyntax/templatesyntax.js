@@ -47,6 +47,11 @@ TemplateSyntax = new function()
 	var heightCookie = 'cmheight';
 	
 	/**
+	 * @type {object}	State of the CM instance (cursor position, scroll position, etc)
+	 */
+	var state = {};
+	
+	/**
 	 * Class constructor
 	 * 
 	 * @returns	{void}						
@@ -332,7 +337,11 @@ TemplateSyntax = new function()
 		$this.setCodeMirrorHeight();
 		$this.events.bindCodeMirrorEvents(CM);
 		
-		$(".CodeMirror").width($(".CodeMirror").parent().innerWidth());
+		var width = $("#templateEditor").width() - 20;
+		width = width - parseInt($(".CodeMirror").css("margin-left").replace('px',''));
+		width = width - parseInt($(".CodeMirror").css("margin-right").replace('px',''));
+		
+		$(".CodeMirror").width(width);
 		
 		CM.refresh();
 		
@@ -417,7 +426,7 @@ TemplateSyntax = new function()
 			// On close send editor back to main DOM
 			onBeforeClose: function() {
 				
-				var cursor = $(".CodeMirror").data("CodeMirror").getCursor();
+				$this.saveState();
 				
 				$this.hideCodeMirror();
 				
@@ -425,7 +434,8 @@ TemplateSyntax = new function()
 				
 				var CM = $this.showCodeMirror();
 				CM.focus();
-				CM.setCursor(cursor);
+				
+				$this.restoreState();
 				
 			},
 			
@@ -441,8 +451,7 @@ TemplateSyntax = new function()
 		// Resize overlay to be fullscreen
 		overlay.getOverlay().css({width: $(window).width() - 100, left: 50, top: 50});
 		
-		// Save CM cursor position
-		var cursor = $(".CodeMirror").data("CodeMirror").getCursor();
+		$this.saveState();
 		
 		$this.hideCodeMirror();
 		
@@ -453,13 +462,16 @@ TemplateSyntax = new function()
 		// Restore CM and set cursor position
 		var CM = $this.showCodeMirror();
 		CM.focus();
-		CM.setCursor(cursor);
 		
 		$(".CodeMirror").data("overlay", overlay);
 		
 		// Resize CM to fit overlay size
 		$(".CodeMirror").css({width: 'auto', margin: 0, padding: 0});
 		$this.setCodeMirrorHeight($(window).height() - 150, false);
+		
+		$this.restoreState();
+		
+		$(".OverlayCloser").css({top: -10, right: -10});
 	};
 	
 	/**
@@ -483,6 +495,36 @@ TemplateSyntax = new function()
 	this.save = function()
 	{
 		$("#saveReloadButton").trigger("click");
+	};
+	
+	/**
+	 * Save the current cursor state
+	 * 
+	 * @returns	{void}						
+	 */
+	this.saveState = function()
+	{
+		var CM = $(".CodeMirror").data("CodeMirror");
+		
+		state.cursor = CM.getCursor();
+		state.endCursor = CM.getCursor(false);
+	};
+	
+	/**
+	 * Restore the previous cursor state
+	 * 
+	 * @returns	{void}						
+	 */
+	this.restoreState = function()
+	{
+		var CM = $(".CodeMirror").data("CodeMirror");
+		
+		CM.setCursor(state.cursor);
+		
+		if (state.cursor.ch != state.endCursor.ch || state.cursor.line != state.endCursor.line)
+		{
+			CM.setSelection(state.cursor, state.endCursor);
+		}
 	};
 	
 	$(document).ready($this.init);
