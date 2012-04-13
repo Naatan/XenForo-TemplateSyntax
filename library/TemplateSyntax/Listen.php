@@ -29,6 +29,7 @@ class TemplateSyntax_Listen
 			$options 	= XenForo_Application::get('options');
 			
 			$append 	 = '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/lib/codemirror.css?v='.$version.'">' . "\n";
+			$append 	.= '<link rel="stylesheet" href="'.$options->boardUrl.'/js/codemirror/lib/util/dialog.css?v='.$version.'">' . "\n";
 			$append 	.= '<link rel="stylesheet" href="'.$options->boardUrl.'/admin.php?_css/&css=templatesyntax&v='.$version.'">' . "\n";
 			
 			if ($options->tsTheme != 'default' AND ! empty($options->tsTheme))
@@ -46,6 +47,9 @@ class TemplateSyntax_Listen
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/mode/htmlmixed/htmlmixed.js?v='.$version.'"></script>' . "\n";
 			
 			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/formatting.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/search.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/searchcursor.js?v='.$version.'"></script>' . "\n";
+			$append 	.= '<script src="'.$options->boardUrl.'/js/codemirror/lib/util/dialog.js?v='.$version.'"></script>' . "\n";
 			
 			if ($options->tsKeyMap != 'default' AND ! empty($options->tsKeyMap))
 			{
