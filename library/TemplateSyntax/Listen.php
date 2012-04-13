@@ -22,14 +22,14 @@ class TemplateSyntax_Listen
 	{
 		if (self::$addExternal AND $templateName == 'PAGE_CONTAINER')
 		{
-			$params 	= $template->getParams();
-			$baseUrl 	= $params['requestPaths']['fullBasePath'];
+			$params 	 = $template->getParams();
+			$baseUrl 	 = $params['requestPaths']['fullBasePath'];
 			
-			$addonModel = new XenForo_Model_AddOn;
-			$version  	= $addonModel->getAddOnVersion('TemplateSyntax');
-			$version 	= $version['version_id'];
+			$addonModel	 = new XenForo_Model_AddOn;
+			$version  	 = $addonModel->getAddOnVersion('TemplateSyntax');
+			$version 	 = $version['version_id'];
 			
-			$options 	= XenForo_Application::get('options');
+			$options 	 = XenForo_Application::get('options');
 			
 			$append 	 = '<link rel="stylesheet" href="'.$baseUrl.'/js/codemirror/lib/codemirror.css?v='.$version.'">' . "\n";
 			$append 	.= '<link rel="stylesheet" href="'.$baseUrl.'/js/codemirror/lib/util/dialog.css?v='.$version.'">' . "\n";
