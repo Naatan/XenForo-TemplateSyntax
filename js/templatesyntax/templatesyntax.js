@@ -405,18 +405,24 @@ TemplateSyntax = new function()
 	 * @param 	{object}			CM
 	 * @param	{int|undefined}		h
 	 * @params 	{bool} 				save
+	 * @params 	{bool} 				respectMax
 	 * 
 	 * @returns	{void}						
 	 */
-	this.setCodeMirrorHeight = function(CM, h, save)
+	this.setCodeMirrorHeight = function(CM, h, save, respectMax)
 	{
 		if (h == undefined)
 		{
 			h = $.getCookie(heightCookie);
 		}
 		
+		if (respectMax === undefined)
+		{
+			respectMax = true;
+		}
+		
 		if (h == null || h < minHeight) h = minHeight;
-		if (h > maxHeight) h = maxHeight;
+		if (respectMax && h > maxHeight) h = maxHeight;
 		
 		$(CM.getWrapperElement()).find(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
 		
@@ -517,7 +523,7 @@ TemplateSyntax = new function()
 		
 		// Resize CM to fit overlay size
 		elem.css({width: 'auto', margin: 0, padding: 0});
-		$this.setCodeMirrorHeight(CM, $(window).height() - 150, false);
+		$this.setCodeMirrorHeight(CM, $(window).height() - 150, false, false);
 		
 		$this.restoreState(CM);
 		
