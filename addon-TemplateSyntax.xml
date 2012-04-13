@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.4" version_id="11" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.5" version_id="12" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -73,9 +73,9 @@ vim = Vim</edit_format_params>
       <relation group_id="TemplateSyntax" display_order="110"/>
     </option>
     <option option_id="tsMaximizeKeybinding" edit_format="select" data_type="string" can_backup="1">
-      <default_value>Shift-Ctrl-F</default_value>
-      <edit_format_params>Shift-Ctrl-F = Shift-Ctrl-F
-Shift-Cmd-F = Shift-Cmd-F
+      <default_value>Shift-Ctrl-M</default_value>
+      <edit_format_params>Shift-Ctrl-M = Shift-Ctrl-M
+Shift-Cmd-M = Shift-Cmd-M
 F1 = F1
 F2 = F2
 F3 = F3
@@ -180,4 +180,5 @@ F12 = F12</edit_format_params>
   <style_properties/>
   <templates/>
   <bb_code_media_sites/>
+  <template_modifications/>
 </addon>
