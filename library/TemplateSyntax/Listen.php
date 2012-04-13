@@ -103,7 +103,11 @@ class TemplateSyntax_Listen
 			! $controller instanceof XenForo_ControllerAdmin_AdminTemplate AND
 			! $controller instanceof XenForo_ControllerAdmin_Template AND
 			! $controller instanceof XenForo_ControllerAdmin_Style AND
-			! $controller instanceof XenForo_ControllerAdmin_AdminStyleProperty
+			! $controller instanceof XenForo_ControllerAdmin_AdminStyleProperty AND
+			(
+				! class_exists('TMS_ControllerAdmin_Modification', false) OR
+				! $controller instanceof TMS_ControllerAdmin_Modification
+			)
 		)
 		{
 			return;

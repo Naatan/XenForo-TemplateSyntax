@@ -42,6 +42,11 @@ TemplateSyntax = new function()
 	var maxHeight = 9999;
 	
 	/**
+	 * @type {string|int}	define with of editor
+	 */
+	var staticWidth = 'auto';
+	
+	/**
 	 * @type {string}	Cookie used to store height
 	 */
 	var heightCookie = 'cmheight';
@@ -68,10 +73,19 @@ TemplateSyntax = new function()
 			$this.showCodeMirror();
 		}
 		
-		if (window.location.href.substr(-13) == 'templates/add' || window.location.href.indexOf('templates/add&') != -1)
+		if (window.location.href.indexOf('templates/add') != -1)
 		{
 			$this.events.bindTabEvents();
 			$this.showCodeMirror();
+		}
+		else if (window.location.href.indexOf('template-modifications') != -1)
+		{
+			minHeight 		= 60;
+			maxHeight 		= 200;
+			staticWidth 	= $("#ctrl_search_value").width();
+			heightCookie 	= 'tmsheight';
+			$this.showCodeMirror($("#ctrl_search_value"));
+			$this.showCodeMirror($("#ctrl_replace_value"));
 		}
 		else
 		{
@@ -132,27 +146,28 @@ TemplateSyntax = new function()
 		 * 
 		 * @returns	{void}						
 		 */
-		bindCodeMirrorEvents: function()
+		bindCodeMirrorEvents: function(CM)
 		{
-			$("#cmresize").remove();
+			var elem = $(CM.getWrapperElement());
+			elem.next('.cmresize').remove();
 			
-			if ( ! $(".CodeMirror").parent().hasClass('section'))
+			if ( ! elem.parent().hasClass('section'))
 			{
-				$(".CodeMirror").after($("<div id=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'}));
-				var elem = $("#cmresize");
+				var cmresize = $("<div class=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'});
+				elem.after(cmresize);
 				
-				elem.unbind('hover');
-				elem.hover(
+				cmresize.unbind('hover');
+				cmresize.hover(
 					function() { $(this).css('cursor', 's-resize'); },
 					function() { $(this).css('cursor', 'auto'); }
 				);
 				
-				elem.unbind('mousedown').unbind('mouseup');
-				elem.mousedown( $this.events.onMouseDown );
-				elem.mouseup( $this.events.onMouseUp );
+				cmresize.unbind('mousedown').unbind('mouseup');
+				cmresize.mousedown( function(e) { $this.events.onMouseDown.call(this, e, CM); } );
+				cmresize.mouseup( function(e) { $this.events.onMouseUp.call(this, e, CM); } );
 			}
 			
-			$(".CodeMirror").mousedown( $this.events.onClickEditor );
+			elem.mousedown( function(e) { $this.events.onClickEditor.call(this, e, CM); } );
 		},
 		
 		/**
@@ -204,15 +219,17 @@ TemplateSyntax = new function()
 		 * 
 		 * @returns	{void}						
 		 */
-		onClickEditor: function(e)
+		onClickEditor: function(e, CM)
 		{
+			var elem = $(CM.getWrapperElement());
+			
 			if (
 				tsConfig.features.autoMaximize &&
 				! $(this).parent().hasClass('section') &&
-				$(".CodeMirror").data("clickMaximize") != false
+				elem.data("clickMaximize") != false
 			)
 			{
-				$this.maximize();
+				$this.maximize(CM);
 			}
 		},
 		
@@ -221,11 +238,11 @@ TemplateSyntax = new function()
 		 * 
 		 * @returns	{void}						
 		 */
-		onMouseDown: function()
+		onMouseDown: function(e, CM)
 		{
 			$(document).unbind('mousemove');
-			$(document).mousemove( $this.events.onMouseMove );
-			$(document).mouseup( $this.events.onMouseUp );
+			$(document).mousemove( function(e) { $this.events.onMouseMove.call(this, e, CM); } );
+			$(document).mouseup( function(e) { $this.events.onMouseUp.call(this, e, CM); } );
 			
 			unselectStyle = $("<style type=text/css>");
 			unselectStyle.html("* { -moz-user-select: none; -webkit-user-select: none; user-select: none; -ms-user-select: none; }");
@@ -252,27 +269,36 @@ TemplateSyntax = new function()
 		 * 
 		 * @returns	{void}						
 		 */
-		onMouseMove: function(event)
+		onMouseMove: function(e, CM)
 		{
+			var elem = $(CM.getWrapperElement());
+			
 			if (resize == false) return;
 			
-			var pos = $(".CodeMirror").offset().top;
-			var h = event.pageY - pos;
+			var pos = elem.offset().top;
+			var h = e.pageY - pos;
 			
 			if (h < minHeight) h = minHeight;
 			
-			$this.setCodeMirrorHeight(h);
+			$this.setCodeMirrorHeight(CM, h);
 		}
 	}
 	
 	/**
 	 * Replace the textarea with a codemirror instance
+	 *
+	 * @param	{object} 		elem
 	 * 
 	 * @returns	{object}		returns CodeMirror instance
 	 */
-	this.showCodeMirror = function()
+	this.showCodeMirror = function(textarea)
 	{
-		if ($('.textCtrl.code:visible').val() == null)
+		if (textarea === undefined)
+		{
+			textarea = $("textarea.textCtrl.code:visible");
+		}
+		
+		if (textarea.val() == null)
 		{
 			return setTimeout($this.showCodeMirror,100);
 		}
@@ -280,29 +306,29 @@ TemplateSyntax = new function()
 		var mode = $this.getSyntaxMode();
 		
 		var config = {
-			value: $('.textCtrl.code:visible').val(),
-			theme: tsConfig.theme,
-			mode: mode,
-			lineNumbers: tsConfig.features.lineNumbers == "1" ? true : false,
-			lineWrapping: tsConfig.features.lineWrapping == "1" ? true : false,
+			value: 			textarea.val(),
+			theme: 			tsConfig.theme,
+			mode: 			mode,
+			lineNumbers: 	tsConfig.features.lineNumbers == "1" ? true : false,
+			lineWrapping: 	tsConfig.features.lineWrapping == "1" ? true : false,
 			indentWithTabs: tsConfig.features.indentWithTabs == "1" ? true : false,
-			smartIndent: tsConfig.features.smartIndent == "1" ? true : false,
-			electricChars: tsConfig.features.electricChars == "1" ? true : false,
-			matchBrackets: tsConfig.features.matchBrackets == "1" ? true : false,
-			tabSize: parseInt(tsConfig.tabSize),
-			indentUnit: parseInt(tsConfig.tabSize),
-			keyMap: tsConfig.keymap == null ? 'default' : tsConfig.keymap,
-			extraKeys: {},
-			onChange: function(editor,data)
+			smartIndent: 	tsConfig.features.smartIndent == "1" ? true : false,
+			electricChars: 	tsConfig.features.electricChars == "1" ? true : false,
+			matchBrackets: 	tsConfig.features.matchBrackets == "1" ? true : false,
+			tabSize: 		parseInt(tsConfig.tabSize),
+			indentUnit: 	parseInt(tsConfig.tabSize),
+			keyMap: 		tsConfig.keymap == null ? 'default' : tsConfig.keymap,
+			extraKeys: 		{},
+			onChange: 		function(CM,data)
 			{
-				$(".CodeMirror").data("textarea").val(editor.getValue());
+				$(CM.getWrapperElement()).data("textarea").val(CM.getValue());
 			}
 		};
 		
 		if (tsConfig.features.closeTags == "1")
 		{
-			config.extraKeys["'>'"] = function(cm) { cm.closeTag(cm, '>'); };
-			config.extraKeys["'/'"] = function(cm) { cm.closeTag(cm, '/'); };
+			config.extraKeys["'>'"] = function(CM) { CM.closeTag(CM, '>'); };
+			config.extraKeys["'/'"] = function(CM) { CM.closeTag(CM, '/'); };
 		}
 		
 		config.extraKeys[tsConfig.keybinding.save] 		= $this.save;
@@ -316,27 +342,32 @@ TemplateSyntax = new function()
 		}
 		
 		var elem;
-		var CM = CodeMirror(function(elt)
-		{
-			var textarea = $('.textCtrl.code:visible');
-			elem = $(elt);
-			
-			elem.data('textarea', textarea);
-			
-			textarea.hide();
-			textarea.after(elem);
-		}, config);
+		var CM = CodeMirror(function() {}, config);
 		
+		var elem = $(CM.getWrapperElement());
+		
+		elem.data('textarea', textarea);
 		elem.data('CodeMirror', CM);
 		
-		$this.setCodeMirrorHeight();
+		textarea.hide();
+		textarea.after(elem);
+		
+		$this.setCodeMirrorHeight(CM);
 		$this.events.bindCodeMirrorEvents(CM);
 		
-		var width = $("#templateEditor").width() - 20;
-		width = width - parseInt($(".CodeMirror").css("margin-left").replace('px',''));
-		width = width - parseInt($(".CodeMirror").css("margin-right").replace('px',''));
-		
-		$(".CodeMirror").width(width);
+		if ($("#templateEditor").length != 0)
+		{
+			var width = $("#templateEditor").width() - 20;
+			width = width - parseInt(elem.css("margin-left").replace('px',''));
+			width = width - parseInt(elem.css("margin-right").replace('px',''));
+			
+			elem.width(width);
+		}
+		else
+		{
+			elem.width(staticWidth);
+			elem.css("margin-left", 0);
+		}
 		
 		CM.refresh();
 		
@@ -348,14 +379,21 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.hideCodeMirror = function()
+	this.hideCodeMirror = function(CM)
 	{
-		var elt = $(".CodeMirror");
-		
-		if (elt.length > 0)
+		if (CM === undefined)
 		{
-			elt.data('textarea').show();
-			elt.remove();
+			var elem = $(".CodeMirror");
+		}
+		else
+		{
+			var elem = $(CM.getWrapperElement());
+		}
+		
+		if (elem.length > 0)
+		{
+			elem.data('textarea').show();
+			elem.remove();
 		}
 	};
 	
@@ -363,12 +401,14 @@ TemplateSyntax = new function()
 	 * Set height of the CodeMirror editor
 	 *
 	 * Sets and falls back on cookies
-	 * 
+	 *
+	 * @param 	{object}			CM
 	 * @param	{int|undefined}		h
+	 * @params 	{bool} 				save
 	 * 
 	 * @returns	{void}						
 	 */
-	this.setCodeMirrorHeight = function(h, save)
+	this.setCodeMirrorHeight = function(CM, h, save)
 	{
 		if (h == undefined)
 		{
@@ -378,9 +418,9 @@ TemplateSyntax = new function()
 		if (h == null || h < minHeight) h = minHeight;
 		if (h > maxHeight) h = maxHeight;
 		
-		$(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
+		$(CM.getWrapperElement()).find(".CodeMirror-scroll, .CodeMirror-scroll > div:first-child").height(h);
 		
-		$(".CodeMirror").data("CodeMirror").refresh();
+		CM.refresh();
 		
 		if (save == undefined || save == true)
 		{
@@ -393,16 +433,16 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.toggleMaximize = function()
+	this.toggleMaximize = function(CM)
 	{
-		if ($(".CodeMirror").parent().hasClass('section'))
+		if ($(CM.getWrapperElement()).parent().hasClass('section'))
 		{
 			$this.unMaximize();
-			$(".CodeMirror").data("clickMaximize", false);
+			$(CM.getWrapperElement()).data("clickMaximize", false);
 		}
 		else
 		{
-			$this.maximize();
+			$this.maximize(CM);
 		}
 	};
 	
@@ -411,30 +451,39 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.maximize = function()
+	this.maximize = function(CM)
 	{
+		var elem = $(CM.getWrapperElement());
 		
 		// Create the overlay
 		var html = "<div class=section></div>";
-		var overlay = XenForo.createOverlay(null, html, {
+		var overlay = XenForo.createOverlay(null, html,
+		{
 			
 			// On close send editor back to main DOM
-			onBeforeClose: function() {
+			onBeforeClose: function()
+			{
 				
-				$this.saveState();
+				var elem 		= overlay.getOverlay().find(".CodeMirror");
+				var textarea 	= elem.data('textarea');
+				var CM   		= elem.data('CodeMirror');
+				var placeholder = textarea.data('placeholder');
 				
-				$this.hideCodeMirror();
+				$this.saveState(CM);
 				
-				$("#codePlaceHolder").replaceWith($('.textCtrl.code:visible'));
+				$this.hideCodeMirror(CM);
 				
-				var CM = $this.showCodeMirror();
+				placeholder.replaceWith(textarea);
+				
+				var CM = $this.showCodeMirror(textarea);
 				CM.focus();
 				
-				$this.restoreState();
+				$this.restoreState(CM);
 				
 			},
 			
-			onClose: function() {
+			onClose: function()
+			{
 				overlay.getOverlay().remove();
 			}
 			
@@ -446,25 +495,31 @@ TemplateSyntax = new function()
 		// Resize overlay to be fullscreen
 		overlay.getOverlay().css({width: $(window).width() - 100, left: 50, top: 50});
 		
-		$this.saveState();
+		$this.saveState(CM);
 		
-		$this.hideCodeMirror();
+		var textarea = elem.data('textarea');
+		
+		$this.hideCodeMirror(CM);
 		
 		// Move Editor to Overlay
-		$('.textCtrl.code:visible').after($("<div id=codePlaceHolder>").css({width: $('.textCtrl.code:visible').width(), height: $('.textCtrl.code:visible').height()}));
-		$('.textCtrl.code:visible').appendTo(overlay.getOverlay().find(".section"));
+		var placeholder = $("<div>").css({width: textarea.width(), height: textarea.height()});
+		textarea.data('placeholder', placeholder);
+		textarea.after(placeholder);
+		textarea.appendTo(overlay.getOverlay().find(".section"));
 		
 		// Restore CM and set cursor position
-		var CM = $this.showCodeMirror();
+		CM = $this.showCodeMirror(textarea);
 		CM.focus();
 		
-		$(".CodeMirror").data("overlay", overlay);
+		elem = $(CM.getWrapperElement());
+		
+		elem.data("overlay", overlay);
 		
 		// Resize CM to fit overlay size
-		$(".CodeMirror").css({width: 'auto', margin: 0, padding: 0});
-		$this.setCodeMirrorHeight($(window).height() - 150, false);
+		elem.css({width: 'auto', margin: 0, padding: 0});
+		$this.setCodeMirrorHeight(CM, $(window).height() - 150, false);
 		
-		$this.restoreState();
+		$this.restoreState(CM);
 		
 		$(".OverlayCloser").css({top: -10, right: -10});
 	};
@@ -474,11 +529,11 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.unMaximize = function()
+	this.unMaximize = function(CM)
 	{
-		if ($(".CodeMirror").data("overlay"))
+		if ($(CM.getWrapperElement()).data("overlay"))
 		{
-			$(".CodeMirror").data("overlay").close();
+			$(CM.getWrapperElement()).data("overlay").close();
 		}
 	};
 	
@@ -487,15 +542,15 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.save = function()
+	this.save = function(CM)
 	{
-		if ($(".CodeMirror").data("overlay"))
+		if ($(CM.getWrapperElement()).data("overlay"))
 		{
 			$("#saveReloadButton").before($("<input>").attr({
 				id: 'savePlaceHolder',
 				type: 'hidden',
-				name: $(".CodeMirror").data("textarea").attr("name"),
-				value: $(".CodeMirror").data("textarea").val()
+				name: $(CM.getWrapperElement()).data("textarea").attr("name"),
+				value: $(CM.getWrapperElement()).data("textarea").val()
 			}));
 		}
 		
@@ -508,10 +563,8 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.saveState = function()
+	this.saveState = function(CM)
 	{
-		var CM = $(".CodeMirror").data("CodeMirror");
-		
 		state.cursor = CM.getCursor();
 		state.endCursor = CM.getCursor(false);
 	};
@@ -521,10 +574,8 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.restoreState = function()
+	this.restoreState = function(CM)
 	{
-		var CM = $(".CodeMirror").data("CodeMirror");
-		
 		CM.setCursor(state.cursor);
 		
 		if (state.cursor.ch != state.endCursor.ch || state.cursor.line != state.endCursor.line)
@@ -598,9 +649,17 @@ TemplateSyntax = new function()
 		{
 			var mode = 'css';
 		}
-		else
+		else if ($("#editorTabs li.active a").length != 0)
 		{
 			var mode = $("#editorTabs li.active a").attr("templatetitle").substr(-3) == 'css' ? 'css' : 'text/html';
+		}
+		else if ($("input[name=template_title]").length != 0)
+		{
+			var mode = $("input[name=template_title]").val().substr(-3) == 'css' ? 'css' : 'text/html';
+		}
+		else
+		{
+			var mode = 'html';
 		}
 		
 		return mode;
