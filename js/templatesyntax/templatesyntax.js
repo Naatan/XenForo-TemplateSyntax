@@ -293,12 +293,12 @@ TemplateSyntax = new function()
 	 */
 	this.showCodeMirror = function(textarea)
 	{
-		if (textarea === undefined)
+		if (textarea === undefined || ! textarea)
 		{
 			textarea = $("textarea.textCtrl.code:visible");
 		}
 		
-		if (textarea.val() == null)
+		if (typeof textarea != 'object' || textarea.val() == null)
 		{
 			return setTimeout($this.showCodeMirror,100);
 		}
