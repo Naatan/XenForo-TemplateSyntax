@@ -183,8 +183,10 @@ TemplateSyntax = new function()
 		{
 			if (ajaxOptions.url.indexOf('templates/load') != -1)
 			{
-				$this.events.bindTabEvents();
-				$this.showCodeMirror();
+				setTimeout( function() {
+					$this.events.bindTabEvents();
+					$this.showCodeMirror();
+				}, 100);
 			}
 		},
 		
