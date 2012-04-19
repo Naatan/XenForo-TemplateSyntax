@@ -69,6 +69,7 @@ TemplateSyntax = new function()
 			minHeight 		= 60;
 			maxHeight 		= 200;
 			heightCookie 	= 'cmsheight';
+			staticWidth 	= $("textarea.textCtrl.code:visible").width();
 			$this.events.bindTabEvents();
 			$this.showCodeMirror();
 		}
@@ -300,7 +301,7 @@ TemplateSyntax = new function()
 			textarea = $("textarea.textCtrl.code:visible");
 		}
 		
-		if (typeof textarea != 'object' || textarea.val() == null)
+		if (typeof textarea != 'object' || textarea.val() == null || textarea.val() == undefined)
 		{
 			return setTimeout($this.showCodeMirror,100);
 		}
