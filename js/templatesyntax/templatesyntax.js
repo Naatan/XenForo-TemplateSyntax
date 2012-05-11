@@ -150,17 +150,22 @@ TemplateSyntax = new function()
 		bindCodeMirrorEvents: function(CM)
 		{
 			var elem = $(CM.getWrapperElement());
-			elem.next('.cmresize').remove();
+			$('.cmresize').remove();
 			
 			if ( ! elem.parent().hasClass('section'))
 			{
-				var cmresize = $("<div class=cmresize>").css({width: '100%', height: '5px', marginTop: '-5px'});
+				var cmresize = $("<div class=cmresize>").css({
+					width: elem.width(),
+					height: '10px',
+					'margin-left': elem.css('margin-left'),
+					'margin-top': '-3px'
+				});
 				elem.after(cmresize);
 				
 				cmresize.unbind('hover');
 				cmresize.hover(
-					function() { $(this).css('cursor', 's-resize'); },
-					function() { $(this).css('cursor', 'auto'); }
+					function() { $(this).css({cursor: 's-resize', height: '8px', 'border-top': '2px dashed #C6C6C6'}); },
+					function() { $(this).css({cursor: 'auto', height: '10px', 'border-top': '0'}); $(this).css('border-width', '0px'); }
 				);
 				
 				cmresize.unbind('mousedown').unbind('mouseup');
@@ -168,7 +173,7 @@ TemplateSyntax = new function()
 				cmresize.mouseup( function(e) { $this.events.onMouseUp.call(this, e, CM); } );
 			}
 			
-			elem.mousedown( function(e) { $this.events.onClickEditor.call(this, e, CM); } );
+			elem.mouseup( function(e) { $this.events.onClickEditor.call(this, e, CM); } );
 		},
 		
 		/**
@@ -202,7 +207,7 @@ TemplateSyntax = new function()
 		 */
 		onClickTab: function(e)
 		{
-			$this.hideCodeMirror();
+			$this.hideCodeMirror(true);
 			
 			for (var i=0;i<clickEvents[$(this).data('tabId')].length;i++)
 			{
@@ -224,6 +229,12 @@ TemplateSyntax = new function()
 		 */
 		onClickEditor: function(e, CM)
 		{
+			
+			if (resize)
+			{
+				return;
+			}
+			
 			var elem = $(CM.getWrapperElement());
 			
 			if (
@@ -232,8 +243,11 @@ TemplateSyntax = new function()
 				elem.data("clickMaximize") != false
 			)
 			{
-				$this.maximize(CM);
+				setTimeout(function() {
+					$this.maximize(CM);
+				}, 0);
 			}
+			
 		},
 		
 		/**
@@ -260,9 +274,12 @@ TemplateSyntax = new function()
 		 */
 		onMouseUp: function()
 		{
-			$(document).unbind('mousemove');
-			$(unselectStyle).remove();
-			resize = false;
+			setTimeout(function()
+			{
+				$(document).unbind('mousemove');
+				$(unselectStyle).remove();
+				resize = false;
+			});
 		},
 		
 		/**
@@ -304,6 +321,16 @@ TemplateSyntax = new function()
 		if (typeof textarea != 'object' || textarea.val() == null || textarea.val() == undefined)
 		{
 			return setTimeout($this.showCodeMirror,100);
+		}
+		
+		if (textarea.data("CodeMirror") != undefined)
+		{
+			var CM = textarea.data("CodeMirror");
+			textarea.hide();
+			$(CM.getWrapperElement()).show();
+			CM.refresh();
+			CM.focus();
+			return CM;
 		}
 		
 		var mode = $this.getSyntaxMode();
@@ -354,6 +381,7 @@ TemplateSyntax = new function()
 		
 		textarea.hide();
 		textarea.after(elem);
+		textarea.data("CodeMirror", CM);
 		
 		$this.setCodeMirrorHeight(CM);
 		$this.events.bindCodeMirrorEvents(CM);
@@ -382,22 +410,22 @@ TemplateSyntax = new function()
 	 * 
 	 * @returns	{void}						
 	 */
-	this.hideCodeMirror = function(CM)
+	this.hideCodeMirror = function(remove)
 	{
-		if (CM === undefined)
-		{
-			var elem = $(".CodeMirror");
-		}
-		else
-		{
-			var elem = $(CM.getWrapperElement());
-		}
+		var elem = $(".CodeMirror");
 		
 		if (elem.length > 0)
 		{
-			elem.data('textarea').show();
+			elem.hide();
+			elem.data("textarea").show();
+		}
+		
+		if (remove === true)
+		{
+			elem.data("textarea").removeData("CodeMirror");
 			elem.remove();
 		}
+		
 	};
 	
 	/**
@@ -463,6 +491,7 @@ TemplateSyntax = new function()
 	this.maximize = function(CM)
 	{
 		var elem = $(CM.getWrapperElement());
+		var css  = elem.attr('style');
 		
 		// Create the overlay
 		var html = "<div class=section></div>";
@@ -478,16 +507,12 @@ TemplateSyntax = new function()
 				var CM   		= elem.data('CodeMirror');
 				var placeholder = textarea.data('placeholder');
 				
-				$this.saveState(CM);
+				placeholder.replaceWith(elem);
 				
-				$this.hideCodeMirror(CM);
+				elem.attr("style", css);
 				
-				placeholder.replaceWith(textarea);
-				
-				var CM = $this.showCodeMirror(textarea);
+				$this.setCodeMirrorHeight(CM);
 				CM.focus();
-				
-				$this.restoreState(CM);
 				
 			},
 			
@@ -504,33 +529,22 @@ TemplateSyntax = new function()
 		// Resize overlay to be fullscreen
 		overlay.getOverlay().css({width: $(window).width() - 100, left: 50, top: 50});
 		
-		$this.saveState(CM);
-		
 		var textarea = elem.data('textarea');
-		
-		$this.hideCodeMirror(CM);
 		
 		// Move Editor to Overlay
 		var placeholder = $("<div>").css({width: textarea.width(), height: textarea.height()});
 		textarea.data('placeholder', placeholder);
 		textarea.after(placeholder);
-		textarea.appendTo(overlay.getOverlay().find(".section"));
 		
-		// Restore CM and set cursor position
-		CM = $this.showCodeMirror(textarea);
-		CM.focus();
-		
-		elem = $(CM.getWrapperElement());
-		
-		elem.data("overlay", overlay);
+		elem.appendTo(overlay.getOverlay().find(".section"));
 		
 		// Resize CM to fit overlay size
 		elem.css({width: 'auto', margin: 0, padding: 0});
 		$this.setCodeMirrorHeight(CM, $(window).height() - 150, false, false);
 		
-		$this.restoreState(CM);
-		
 		$(".OverlayCloser").css({top: -10, right: -10});
+		
+		CM.focus();
 	};
 	
 	/**
