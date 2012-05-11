@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.5.3" version_id="15" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="TemplateSyntax" title="Template Syntax" version_string="1.6" version_id="16" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -121,13 +121,19 @@ max=8</edit_format_params>
     </option>
     <option option_id="tsTheme" edit_format="select" data_type="string" can_backup="1">
       <default_value>default</default_value>
-      <edit_format_params>default=Default
+      <edit_format_params>ambiance=Ambiance
+blackboard=Blackboard
 cobalt=Cobalt
+default=Default
 eclipse=Eclipse
+elegant=Elegant
+erlang-dark=Erlang Dark
+lesser-dark=Lesser Dark
 monokai=Monokai
 neat=Neat
 night=Night
-rubyblue=Rubyblue</edit_format_params>
+rubyblue=Rubyblue
+xq-dark=XQ Dark</edit_format_params>
       <sub_options></sub_options>
       <relation group_id="TemplateSyntax" display_order="130"/>
     </option>
