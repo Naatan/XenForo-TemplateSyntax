@@ -2,21 +2,24 @@
 
 /**
  * Listener
+ *
  */
 class TemplateSyntax_Listen
 {
-	
-	static $addExternal = false;
-	
+
+	public static $addExternal 	= false;
+
 	/**
-	 * Listen for post render effects so we can append externals to the header in the PAGE_CONTAINER template
-	 * 
+	 * Listen for post render effects so we can append externals to the header in the
+	 * PAGE_CONTAINER template
+	 *
 	 * @param	string						$templateName	
 	 * @param	string						$content		
 	 * @param	array						array			
 	 * @param	XenForo_Template_Abstract	$template
-	 * 
+	 *
 	 * @return	void										
+	 *
 	 */
 	public static function template_post_render($templateName, &$content, array &$containerData, XenForo_Template_Abstract $template)
 	{
@@ -91,32 +94,46 @@ class TemplateSyntax_Listen
 		}
 		
 	}
-	
+
 	/**
-	 * Listen for controller pre dispatch events so we can detect when the externals are required
-	 * 
+	 * Listen for controller pre dispatch events so we can detect when the externals
+	 * are required
+	 *
 	 * @param	XenForo_Controller	$controller		
 	 * @param	string				$action
-	 * 
+	 *
 	 * @return	void			
+	 *
 	 */
 	public static function controller_pre_dispatch(XenForo_Controller $controller, $action)
 	{
 		if (
-			! $controller instanceof XenForo_ControllerAdmin_AdminTemplate AND
-			! $controller instanceof XenForo_ControllerAdmin_Template AND
-			! $controller instanceof XenForo_ControllerAdmin_Style AND
-			! $controller instanceof XenForo_ControllerAdmin_AdminStyleProperty AND
 			(
-				! class_exists('TMS_ControllerAdmin_Modification', false) OR
-				! $controller instanceof TMS_ControllerAdmin_Modification
+				(
+					$controller instanceof XenForo_ControllerAdmin_AdminTemplate OR
+					$controller instanceof XenForo_ControllerAdmin_Template OR
+					$controller instanceof XenForo_ControllerAdmin_Style 
+				)
+				AND
+				in_array($action, array('Add', 'Edit'))
+			)
+			OR
+			(
+				class_exists('TMS_ControllerAdmin_Modification', false) AND
+				$controller instanceof TMS_ControllerAdmin_Modification
 			)
 		)
 		{
-			return;
+			self::$addExternal = true;
 		}
-		
-		self::$addExternal = true;
 	}
-	
+
+	public static function front_controller_pre_view(XenForo_FrontController $fc, XenForo_ControllerResponse_Abstract &$controllerResponse, XenForo_ViewRenderer_Abstract &$viewRenderer, array &$containerParams)
+	{
+		if (defined('TS_DISABLE'))
+		{
+			self::$addExternal = false;
+		}
+	}
+
 }

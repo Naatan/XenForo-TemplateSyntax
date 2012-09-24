@@ -420,7 +420,7 @@ TemplateSyntax = new function()
 			elem.data("textarea").show();
 		}
 		
-		if (remove === true)
+		if (remove === true && elem.data("textarea"))
 		{
 			elem.data("textarea").removeData("CodeMirror");
 			elem.remove();

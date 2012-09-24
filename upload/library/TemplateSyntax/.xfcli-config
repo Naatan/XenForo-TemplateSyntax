@@ -1,0 +1,8 @@
+{
+	"addon":	{
+		"id":	"TemplateSyntax",
+		"name":	"TemplateSyntax",
+		"namespace":	"TemplateSyntax",
+		"path":	"library/TemplateSyntax/"
+	}
+}
